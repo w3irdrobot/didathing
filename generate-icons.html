@@ -30,13 +30,13 @@
       const size = canvas.width;
       const scale = size / 100;
 
-      // Background with rounded corners
-      ctx.fillStyle = '#3b82f6';
+      // Background with rounded corners (Catppuccin Mocha Blue)
+      ctx.fillStyle = '#89b4fa';
       roundRect(ctx, 0, 0, size, size, 20 * scale);
       ctx.fill();
 
-      // Checkmark
-      ctx.strokeStyle = '#ffffff';
+      // Checkmark (Catppuccin Mocha Base)
+      ctx.strokeStyle = '#1e1e2e';
       ctx.lineWidth = 8 * scale;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -49,7 +49,7 @@
 
       // Circle
       ctx.globalAlpha = 0.3;
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#1e1e2e';
       ctx.lineWidth = 4 * scale;
       ctx.beginPath();
       ctx.arc(50 * scale, 50 * scale, 35 * scale, 0, Math.PI * 2);
