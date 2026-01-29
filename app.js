@@ -19,36 +19,10 @@ async function init() {
   }
 }
 
-// Theme management
+// Theme management - Auto mode only (follows system preference)
 function initTheme() {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme) {
-    document.body.setAttribute('data-theme', savedTheme);
-  }
-
-  const themeToggle = document.getElementById('theme-toggle');
-  themeToggle.addEventListener('click', toggleTheme);
-}
-
-function toggleTheme() {
-  const currentTheme = document.body.getAttribute('data-theme');
-  let newTheme;
-
-  if (currentTheme === 'dark') {
-    newTheme = 'light';
-  } else if (currentTheme === 'light') {
-    newTheme = null; // Return to system preference
-  } else {
-    newTheme = 'dark';
-  }
-
-  if (newTheme) {
-    document.body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-  } else {
-    document.body.removeAttribute('data-theme');
-    localStorage.removeItem('theme');
-  }
+  // Always use system preference (prefers-color-scheme)
+  // No manual override needed
 }
 
 // Router
