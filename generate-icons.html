@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Icons</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    canvas { border: 1px solid #ccc; margin: 1rem; }
+    .instructions { background: #f0f0f0; padding: 1rem; border-radius: 4px; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="instructions">
+    <h2>Icon Generator</h2>
+    <p>Right-click on each canvas and "Save image as..." to save the PNG icons:</p>
+    <ul>
+      <li>Save the first as <code>icons/icon-192.png</code></li>
+      <li>Save the second as <code>icons/icon-512.png</code></li>
+    </ul>
+  </div>
+
+  <h3>192x192</h3>
+  <canvas id="canvas192" width="192" height="192"></canvas>
+
+  <h3>512x512</h3>
+  <canvas id="canvas512" width="512" height="512"></canvas>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const scale = size / 100;
+
+      // Background with rounded corners
+      ctx.fillStyle = '#3b82f6';
+      roundRect(ctx, 0, 0, size, size, 20 * scale);
+      ctx.fill();
+
+      // Checkmark
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 8 * scale;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      ctx.beginPath();
+      ctx.moveTo(30 * scale, 50 * scale);
+      ctx.lineTo(45 * scale, 65 * scale);
+      ctx.lineTo(70 * scale, 35 * scale);
+      ctx.stroke();
+
+      // Circle
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4 * scale;
+      ctx.beginPath();
+      ctx.arc(50 * scale, 50 * scale, 35 * scale, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    drawIcon(document.getElementById('canvas192'));
+    drawIcon(document.getElementById('canvas512'));
+  </script>
+</body>
+</html>
