@@ -4,8 +4,8 @@
   "description": "Track when you did things",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#1e1e2e",
-  "theme_color": "#1e1e2e",
+  "background_color": "#fbf3e6",
+  "theme_color": "#d11f2a",
   "orientation": "portrait-primary",
   "icons": [
     {

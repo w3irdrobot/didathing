@@ -1,13 +1,23 @@
 # Did a Thing
 
-A super-simple, offline-first PWA for tracking when you did things.
+A super-simple, offline-first PWA for tracking when you did things and managing repeating cycles.
+
+## Concept
+
+Everything in "Did a Thing" is a **cycle** — a repeating sequence of phases (states):
+
+- **Single-step things**: Track simple tasks (e.g., "Water plants"). Each time you mark it done, you're re-entering the same phase, resetting the timer.
+- **Multi-phase cycles**: Track things with multiple phases (e.g., creatine loading → maintenance → pause). Advance through phases in sequence; when you reach the end, it loops back to the start.
 
 ## Features
 
-- ✅ Track tasks and see how long since you last did them
-- ✅ Quick "Did it now" button for instant updates
-- ✅ Completion history with ability to add/remove completions
-- ✅ Light/dark theme (follows system preference with manual override)
+- ✅ Track single-step tasks and see how long since you last did them
+- ✅ Create multi-phase cycles (e.g., workout programs, supplement cycles)
+- ✅ Quick "Did it now" / "Next phase" button
+- ✅ Full history of all transitions
+- ✅ Export/import your data (JSON)
+- ✅ Wipe all data with confirmation
+- ✅ Auto dark/light theme (Catppuccin Mocha/Latte)
 - ✅ Works offline (PWA with Service Worker)
 - ✅ Install to home screen on mobile
 - ✅ Zero external dependencies
@@ -200,3 +210,85 @@ Requires:
 ## License
 
 AGPLv3
+
+## Examples
+
+### Single-Step Thing
+**"Water plants"** - A simple task you do repeatedly.
+- Add it as a "Single step"
+- Click "Did it now" each time you water
+- Shows "Last done 2d" (or "Never")
+
+### Multi-Phase Cycle
+**"Creatine cycle"** - A supplement cycle with phases:
+1. Loading (2 weeks): 20g/day
+2. Maintenance (6 weeks): 5g/day  
+3. Pause (2 weeks): 0g/day
+
+Then it repeats.
+
+- Add it as a "Cycle"
+- Define phases: Loading, Maintenance, Pause
+- Click "Next phase" when transitioning
+- Shows current phase and time in phase
+
+### Other Cycle Examples
+- **Workout split**: Push / Pull / Legs / Rest (repeat)
+- **Meditation practice**: Beginner / Intermediate / Advanced
+- **Reading habit**: Read / Reflect / Apply (weekly cycle)
+
+## Usage
+
+### Add a Thing
+
+1. Click the **+** button
+2. Enter a name (e.g., "Water plants")
+3. Choose type:
+   - **Single step**: Just track when you do it
+   - **Cycle**: Multiple phases
+4. For cycles, add phase names (at least 2)
+5. Click "Add Thing"
+
+### Mark Progress
+
+- **Single-step**: Click "Did it now" to record a completion
+- **Multi-phase**: Click "Next phase" to advance to the next state
+
+### View/Edit History
+
+- Click a thing's name to edit
+- View completion/transition history
+- Delete individual entries to correct mistakes
+- Edit the thing name
+- Delete the thing entirely
+
+### Advanced Features
+
+Click the ⚙ icon on the list screen:
+
+- **Export Data**: Download all your data as JSON
+- **Delete All Data**: Wipe everything (requires typing "DELETE" to confirm)
+
+## What to Try
+
+1. **Add a simple task**:
+   - "Take vitamins" (single step)
+   - Mark it done a few times
+   - View the history
+
+2. **Add a cycle**:
+   - "Workout split" (cycle)
+   - Phases: Push, Pull, Legs, Rest
+   - Advance through a few phases
+   - View transition history
+
+3. **Export your data**:
+   - Go to Advanced (⚙)
+   - Click "Export Data"
+   - Open the JSON to see your data structure
+
+4. **Install as PWA**:
+   - Chrome: Click install icon in address bar
+   - Mobile: "Add to Home Screen"
+   - Works offline!
+

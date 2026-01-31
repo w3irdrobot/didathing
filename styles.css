@@ -1,34 +1,67 @@
-/* Catppuccin Latte (Light Theme - Default) */
+/* American Traditional Tattoo Theme */
 :root {
-  --bg-primary: #eff1f5;
-  --bg-secondary: #e6e9ef;
-  --bg-elevated: #ccd0da;
-  --text-primary: #4c4f69;
-  --text-secondary: #6c6f85;
-  --accent: #1e66f5;
-  --accent-hover: #04a5e5;
-  --border: #acb0be;
-  --danger: #d20f39;
-  --danger-hover: #e64553;
-  --success: #40a02b;
-  --shadow: rgba(76, 79, 105, 0.15);
+  /* Ink + paper */
+  --bg: #fbf3e6;          /* aged paper */
+  --surface: #fffaf0;
+  --ink: #111111;         /* near-black linework */
+  --muted: #5b5147;
+
+  /* Classic flash colors */
+  --red: #d11f2a;         /* sailor red */
+  --yellow: #f2c230;      /* warm gold */
+  --green: #1f7a4d;       /* bottle green */
+  --blue: #1f4e8c;        /* navy */
+  --teal: #1a8f9b;        /* optional accent */
+  --tan: #c7a27a;         /* skin/rope */
+
+  /* UI mapping for app components */
+  --bg-primary: var(--bg);
+  --bg-secondary: #f0e8d8;
+  --bg-elevated: var(--surface);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --accent: var(--red);
+  --accent-hover: #b01821;
+  --border: rgba(27, 27, 27, 0.12);
+  --danger: var(--red);
+  --danger-hover: #b01821;
+  --success: var(--green);
+  --shadow: rgba(17, 17, 17, 0.1);
 }
 
-/* Catppuccin Mocha (Dark Theme - Auto based on system preference) */
+/* American Traditional Tattoo Theme (Dark) */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1e1e2e;
-    --bg-secondary: #181825;
-    --bg-elevated: #313244;
-    --text-primary: #cdd6f4;
-    --text-secondary: #bac2de;
-    --accent: #89b4fa;
-    --accent-hover: #74c7ec;
-    --border: #45475a;
-    --danger: #f38ba8;
-    --danger-hover: #eba0ac;
-    --success: #a6e3a1;
-    --shadow: rgba(0, 0, 0, 0.4);
+  :root{
+    /* Ink + paper (inverted) */
+    --bg: #0f0e0c;          /* near-black "shop wall" */
+    --surface: #171513;     /* card surface */
+    --ink: #fbf3e6;         /* "paper" as text */
+    --muted: #c7a27a;       /* warm rope/tan for secondary text */
+
+    /* Classic flash colors (slightly lifted for dark bg) */
+    --red: #ff3b3f;         /* punchy sailor red */
+    --yellow: #ffd24a;      /* warm gold */
+    --green: #2bb673;       /* bottle green, brighter */
+    --blue: #3a78d4;        /* navy pushed brighter */
+    --teal: #2fb9c3;        /* optional accent */
+    --tan: #c7a27a;
+
+    /* UI mapping */
+    --bg-primary: var(--bg);
+    --bg-secondary: #13110f;
+    --bg-elevated: var(--surface);
+    --text-primary: var(--ink);
+    --text-secondary: #e2d2bc;
+
+    --accent: var(--red);
+    --accent-hover: #ff6b6e;
+
+    --border: rgba(251, 243, 230, 0.14);
+    --danger: var(--red);
+    --danger-hover: #ff6b6e;
+    --success: var(--green);
+
+    --shadow: rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -50,7 +83,7 @@ body {
 header {
   padding: 1rem;
   background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 3px solid var(--ink);
   box-shadow: 0 2px 4px var(--shadow);
   position: sticky;
   top: 0;
@@ -59,7 +92,9 @@ header {
 
 header h1 {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 main {
@@ -115,15 +150,16 @@ main {
 
 .task-item {
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border: 2px solid var(--ink);
+  border-radius: 0.375rem;
   padding: 1rem;
-  box-shadow: 0 1px 3px var(--shadow);
-  transition: box-shadow 0.2s;
+  box-shadow: 3px 3px 0 rgba(17, 17, 17, 0.15);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .task-item:hover {
-  box-shadow: 0 2px 6px var(--shadow);
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 0 rgba(17, 17, 17, 0.2);
 }
 
 .task-header {
@@ -136,7 +172,7 @@ main {
 
 .task-title {
   font-size: 1.125rem;
-  font-weight: 500;
+  font-weight: 700;
   word-break: break-word;
   flex: 1;
   cursor: pointer;
@@ -177,12 +213,12 @@ main {
 
 .btn {
   padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: 0.375rem;
+  border: 2px solid var(--ink);
+  border-radius: 0.25rem;
   font-size: 0.9375rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.1s;
   text-decoration: none;
   display: inline-block;
   text-align: center;
@@ -190,6 +226,19 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 2px 2px 0 var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.btn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--ink);
 }
 
 .btn:focus {
@@ -198,32 +247,25 @@ main {
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
+  background: var(--red);
+  color: var(--bg);
   flex: 1;
 }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
-}
-
 .btn-secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--border);
+  background: var(--bg-elevated);
+  color: var(--ink);
 }
 
 .btn-danger {
-  background: var(--danger);
-  color: white;
+  background: var(--red);
+  color: var(--bg);
+  border-color: var(--red);
+  box-shadow: 2px 2px 0 rgba(209, 31, 42, 0.4);
 }
 
 .btn-danger:hover {
-  background: var(--danger-hover);
+  box-shadow: 1px 1px 0 rgba(209, 31, 42, 0.4);
 }
 
 .btn-small {
@@ -239,13 +281,14 @@ main {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  border: none;
+  background: var(--red);
+  color: var(--bg);
+  border: 3px solid var(--ink);
   font-size: 2rem;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 12px var(--shadow);
-  transition: all 0.2s;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: all 0.1s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -253,8 +296,13 @@ main {
 }
 
 .fab:hover {
-  background: var(--accent-hover);
-  transform: scale(1.05);
+  transform: translate(1px, 1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.fab:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
 }
 
 .fab:focus {
@@ -276,10 +324,10 @@ main {
 /* Form Screens */
 .form-container {
   background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border: 2px solid var(--ink);
+  border-radius: 0.375rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px var(--shadow);
+  box-shadow: 3px 3px 0 rgba(17, 17, 17, 0.15);
 }
 
 .form-group {
@@ -289,27 +337,30 @@ main {
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
 }
 
 .form-group input[type="text"],
 .form-group input[type="datetime-local"] {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  border: 2px solid var(--ink);
+  border-radius: 0.25rem;
+  background: var(--bg);
+  color: var(--ink);
   font-size: 1rem;
   font-family: inherit;
-  transition: border-color 0.2s;
+  font-weight: 500;
+  transition: box-shadow 0.1s;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(209, 31, 42, 0.2);
 }
 
 .form-actions {
@@ -396,4 +447,115 @@ main {
   .task-item {
     padding: 1.25rem;
   }
+}
+
+/* Cycle-specific styles */
+.cycle-info {
+  margin-bottom: 0.75rem;
+}
+
+.current-phase {
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.next-phase {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+/* Radio group */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+
+.radio-label:hover {
+  background: var(--bg-secondary);
+}
+
+.radio-label input[type="radio"] {
+  cursor: pointer;
+}
+
+/* Phase editing */
+.phase-item {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.phase-name-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+}
+
+.phase-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.1);
+}
+
+.phase-edit-item {
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.phases-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.phases-section h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+/* Advanced screen */
+.advanced-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.advanced-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.advanced-section h3 {
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.advanced-section p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
 }

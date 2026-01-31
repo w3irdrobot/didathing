@@ -30,14 +30,14 @@
       const size = canvas.width;
       const scale = size / 100;
 
-      // Background with rounded corners (Catppuccin Mocha Blue)
-      ctx.fillStyle = '#89b4fa';
+      // Background with rounded corners (Sailor Red)
+      ctx.fillStyle = '#d11f2a';
       roundRect(ctx, 0, 0, size, size, 20 * scale);
       ctx.fill();
 
-      // Checkmark (Catppuccin Mocha Base)
-      ctx.strokeStyle = '#1e1e2e';
-      ctx.lineWidth = 8 * scale;
+      // Checkmark (Aged Paper)
+      ctx.strokeStyle = '#fbf3e6';
+      ctx.lineWidth = 10 * scale;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       
@@ -48,9 +48,9 @@
       ctx.stroke();
 
       // Circle
-      ctx.globalAlpha = 0.3;
-      ctx.strokeStyle = '#1e1e2e';
-      ctx.lineWidth = 4 * scale;
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#fbf3e6';
+      ctx.lineWidth = 5 * scale;
       ctx.beginPath();
       ctx.arc(50 * scale, 50 * scale, 35 * scale, 0, Math.PI * 2);
       ctx.stroke();

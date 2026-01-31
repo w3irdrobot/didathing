@@ -1,9 +1,10 @@
-// IndexedDB wrapper for Did a Thing
+// IndexedDB wrapper for Did a Thing - Cycle-based model
 
 const DB_NAME = 'DidAThingDB';
 const DB_VERSION = 1;
 const TASK_STORE = 'tasks';
-const COMPLETION_STORE = 'completions';
+const PHASE_STORE = 'phases';
+const TRANSITION_STORE = 'transitions';
 
 let db = null;
 
@@ -11,50 +12,73 @@ export async function initDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(new Error('Failed to open database'));
+    request.onerror = (event) => {
+      console.error('IndexedDB error:', event.target.error);
+      reject(new Error(`Failed to open database: ${event.target.error?.message || 'Unknown error'}`));
+    };
+
+    request.onblocked = () => {
+      console.warn('Database upgrade blocked - close other tabs');
+      reject(new Error('Database blocked - please close other tabs and reload'));
+    };
 
     request.onsuccess = (event) => {
       db = event.target.result;
+      
+      db.onerror = (event) => {
+        console.error('Database error:', event.target.error);
+      };
+      
+      console.log('Database opened successfully');
       resolve(db);
     };
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
+      console.log('Creating database schema...');
 
       // Tasks store
-      if (!db.objectStoreNames.contains(TASK_STORE)) {
-        const taskStore = db.createObjectStore(TASK_STORE, { 
-          keyPath: 'id', 
-          autoIncrement: true 
-        });
-        taskStore.createIndex('title', 'title', { unique: false });
-        taskStore.createIndex('createdAt', 'createdAt', { unique: false });
-        taskStore.createIndex('updatedAt', 'updatedAt', { unique: false });
-      }
+      const taskStore = db.createObjectStore(TASK_STORE, { 
+        keyPath: 'id', 
+        autoIncrement: true 
+      });
+      taskStore.createIndex('title', 'title', { unique: false });
+      taskStore.createIndex('createdAt', 'createdAt', { unique: false });
+      taskStore.createIndex('updatedAt', 'updatedAt', { unique: false });
 
-      // Completions store
-      if (!db.objectStoreNames.contains(COMPLETION_STORE)) {
-        const completionStore = db.createObjectStore(COMPLETION_STORE, { 
-          keyPath: 'id', 
-          autoIncrement: true 
-        });
-        completionStore.createIndex('taskId', 'taskId', { unique: false });
-        completionStore.createIndex('completedAt', 'completedAt', { unique: false });
-        completionStore.createIndex('taskId_completedAt', ['taskId', 'completedAt'], { unique: false });
-      }
+      // Phases store
+      const phaseStore = db.createObjectStore(PHASE_STORE, {
+        keyPath: 'id',
+        autoIncrement: true
+      });
+      phaseStore.createIndex('taskId', 'taskId', { unique: false });
+      phaseStore.createIndex('taskId_index', ['taskId', 'index'], { unique: true });
+
+      // Transitions store
+      const transitionStore = db.createObjectStore(TRANSITION_STORE, {
+        keyPath: 'id',
+        autoIncrement: true
+      });
+      transitionStore.createIndex('taskId', 'taskId', { unique: false });
+      transitionStore.createIndex('taskId_transitionedAt', ['taskId', 'transitionedAt'], { unique: false });
+
+      console.log('Database schema created');
     };
   });
 }
 
 // Task operations
-export async function createTask(title) {
+export async function createTask(title, currentPhaseIndex = 0, currentPhaseSince = null) {
+  const now = Date.now();
   const transaction = db.transaction([TASK_STORE], 'readwrite');
   const store = transaction.objectStore(TASK_STORE);
   
   const task = {
     title: title.trim(),
-    createdAt: Date.now(),
-    updatedAt: Date.now()
+    currentPhaseIndex,
+    currentPhaseSince: currentPhaseSince || now,
+    createdAt: now,
+    updatedAt: now
   };
 
   return new Promise((resolve, reject) => {
@@ -107,91 +131,254 @@ export async function updateTask(id, updates) {
 }
 
 export async function deleteTask(id) {
-  // Delete task and all its completions
-  const transaction = db.transaction([TASK_STORE, COMPLETION_STORE], 'readwrite');
+  // Delete task and all its phases and transitions
+  const transaction = db.transaction([TASK_STORE, PHASE_STORE, TRANSITION_STORE], 'readwrite');
   const taskStore = transaction.objectStore(TASK_STORE);
-  const completionStore = transaction.objectStore(COMPLETION_STORE);
-  const completionIndex = completionStore.index('taskId');
+  const phaseStore = transaction.objectStore(PHASE_STORE);
+  const transitionStore = transaction.objectStore(TRANSITION_STORE);
 
   return new Promise((resolve, reject) => {
-    // First delete all completions
-    const completionsRequest = completionIndex.getAllKeys(id);
-    completionsRequest.onsuccess = () => {
-      const completionKeys = completionsRequest.result;
-      completionKeys.forEach(key => completionStore.delete(key));
+    // Delete all phases
+    const phaseIndex = phaseStore.index('taskId');
+    const phaseRequest = phaseIndex.getAllKeys(id);
+    phaseRequest.onsuccess = () => {
+      phaseRequest.result.forEach(key => phaseStore.delete(key));
+    };
+
+    // Delete all transitions
+    const transitionIndex = transitionStore.index('taskId');
+    const transitionRequest = transitionIndex.getAllKeys(id);
+    transitionRequest.onsuccess = () => {
+      transitionRequest.result.forEach(key => transitionStore.delete(key));
       
-      // Then delete the task
+      // Finally delete the task
       const taskRequest = taskStore.delete(id);
       taskRequest.onsuccess = () => resolve();
       taskRequest.onerror = () => reject(new Error('Failed to delete task'));
     };
-    completionsRequest.onerror = () => reject(new Error('Failed to delete completions'));
+
+    phaseRequest.onerror = () => reject(new Error('Failed to delete phases'));
+    transitionRequest.onerror = () => reject(new Error('Failed to delete transitions'));
   });
 }
 
-// Completion operations
-export async function createCompletion(taskId, completedAt = Date.now()) {
-  const transaction = db.transaction([COMPLETION_STORE], 'readwrite');
-  const store = transaction.objectStore(COMPLETION_STORE);
+// Phase operations
+export async function createPhase(taskId, index, name, durationDays = null) {
+  const now = Date.now();
+  const transaction = db.transaction([PHASE_STORE], 'readwrite');
+  const store = transaction.objectStore(PHASE_STORE);
   
-  const completion = {
+  const phase = {
     taskId,
-    completedAt
+    index,
+    name: name.trim(),
+    durationDays,
+    createdAt: now,
+    updatedAt: now
   };
 
   return new Promise((resolve, reject) => {
-    const request = store.add(completion);
-    request.onsuccess = () => resolve({ ...completion, id: request.result });
-    request.onerror = () => reject(new Error('Failed to create completion'));
+    const request = store.add(phase);
+    request.onsuccess = () => resolve({ ...phase, id: request.result });
+    request.onerror = () => reject(new Error('Failed to create phase'));
   });
 }
 
-export async function getCompletionsForTask(taskId) {
-  const transaction = db.transaction([COMPLETION_STORE], 'readonly');
-  const store = transaction.objectStore(COMPLETION_STORE);
+export async function getPhasesForTask(taskId) {
+  const transaction = db.transaction([PHASE_STORE], 'readonly');
+  const store = transaction.objectStore(PHASE_STORE);
   const index = store.index('taskId');
 
   return new Promise((resolve, reject) => {
     const request = index.getAll(taskId);
     request.onsuccess = () => {
-      const completions = request.result;
-      // Sort by completedAt descending (newest first)
-      completions.sort((a, b) => b.completedAt - a.completedAt);
-      resolve(completions);
+      const phases = request.result;
+      phases.sort((a, b) => a.index - b.index);
+      resolve(phases);
     };
-    request.onerror = () => reject(new Error('Failed to get completions'));
+    request.onerror = () => reject(new Error('Failed to get phases'));
   });
 }
 
-export async function getLastCompletionForTask(taskId) {
-  const completions = await getCompletionsForTask(taskId);
-  return completions.length > 0 ? completions[0] : null;
+export async function updatePhase(id, updates) {
+  const transaction = db.transaction([PHASE_STORE], 'readwrite');
+  const store = transaction.objectStore(PHASE_STORE);
+
+  return new Promise((resolve, reject) => {
+    const getRequest = store.get(id);
+    getRequest.onsuccess = () => {
+      const phase = getRequest.result;
+      if (!phase) {
+        reject(new Error('Phase not found'));
+        return;
+      }
+
+      const updatedPhase = {
+        ...phase,
+        ...updates,
+        updatedAt: Date.now()
+      };
+
+      const putRequest = store.put(updatedPhase);
+      putRequest.onsuccess = () => resolve(updatedPhase);
+      putRequest.onerror = () => reject(new Error('Failed to update phase'));
+    };
+    getRequest.onerror = () => reject(new Error('Failed to get phase'));
+  });
 }
 
-export async function deleteCompletion(id) {
-  const transaction = db.transaction([COMPLETION_STORE], 'readwrite');
-  const store = transaction.objectStore(COMPLETION_STORE);
+export async function deletePhase(id) {
+  const transaction = db.transaction([PHASE_STORE], 'readwrite');
+  const store = transaction.objectStore(PHASE_STORE);
 
   return new Promise((resolve, reject) => {
     const request = store.delete(id);
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to delete completion'));
+    request.onerror = () => reject(new Error('Failed to delete phase'));
   });
 }
 
-// Get all tasks with their last completion
-export async function getTasksWithCompletions() {
+// Transition operations
+export async function createTransition(taskId, fromPhaseIndex, toPhaseIndex, transitionedAt = Date.now()) {
+  const transaction = db.transaction([TRANSITION_STORE], 'readwrite');
+  const store = transaction.objectStore(TRANSITION_STORE);
+  
+  const transition = {
+    taskId,
+    fromPhaseIndex,
+    toPhaseIndex,
+    transitionedAt
+  };
+
+  return new Promise((resolve, reject) => {
+    const request = store.add(transition);
+    request.onsuccess = () => resolve({ ...transition, id: request.result });
+    request.onerror = () => reject(new Error('Failed to create transition'));
+  });
+}
+
+export async function getTransitionsForTask(taskId) {
+  const transaction = db.transaction([TRANSITION_STORE], 'readonly');
+  const store = transaction.objectStore(TRANSITION_STORE);
+  const index = store.index('taskId');
+
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(taskId);
+    request.onsuccess = () => {
+      const transitions = request.result;
+      transitions.sort((a, b) => b.transitionedAt - a.transitionedAt);
+      resolve(transitions);
+    };
+    request.onerror = () => reject(new Error('Failed to get transitions'));
+  });
+}
+
+export async function deleteTransition(id) {
+  const transaction = db.transaction([TRANSITION_STORE], 'readwrite');
+  const store = transaction.objectStore(TRANSITION_STORE);
+
+  return new Promise((resolve, reject) => {
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(new Error('Failed to delete transition'));
+  });
+}
+
+// Advance to next phase
+export async function advancePhase(taskId) {
+  const task = await getTask(taskId);
+  const phases = await getPhasesForTask(taskId);
+  
+  if (!task || phases.length === 0) {
+    throw new Error('Task or phases not found');
+  }
+
+  const currentIndex = task.currentPhaseIndex;
+  const nextIndex = (currentIndex + 1) % phases.length;
+  const now = Date.now();
+
+  // Create transition
+  await createTransition(taskId, currentIndex, nextIndex, now);
+
+  // Update task
+  await updateTask(taskId, {
+    currentPhaseIndex: nextIndex,
+    currentPhaseSince: now
+  });
+
+  return { currentIndex: nextIndex, phases };
+}
+
+// Get all data for export
+export async function getAllData() {
   const tasks = await getAllTasks();
-  const tasksWithCompletions = await Promise.all(
+  const allPhases = [];
+  const allTransitions = [];
+
+  for (const task of tasks) {
+    const phases = await getPhasesForTask(task.id);
+    const transitions = await getTransitionsForTask(task.id);
+    allPhases.push(...phases);
+    allTransitions.push(...transitions);
+  }
+
+  return {
+    tasks,
+    phases: allPhases,
+    transitions: allTransitions
+  };
+}
+
+// Wipe all data
+export async function wipeAllData() {
+  return new Promise((resolve, reject) => {
+    // Close the database connection first
+    if (db) {
+      db.close();
+      db = null;
+    }
+
+    // Delete the entire database
+    const request = indexedDB.deleteDatabase(DB_NAME);
+    
+    request.onsuccess = () => {
+      console.log('Database deleted successfully');
+      resolve();
+    };
+    
+    request.onerror = () => {
+      reject(new Error('Failed to delete database'));
+    };
+    
+    request.onblocked = () => {
+      console.warn('Database deletion blocked');
+      reject(new Error('Database deletion blocked - close all tabs'));
+    };
+  });
+}
+
+// Get tasks with their phase info for display
+export async function getTasksWithPhaseInfo() {
+  const tasks = await getAllTasks();
+  
+  const tasksWithInfo = await Promise.all(
     tasks.map(async (task) => {
-      const lastCompletion = await getLastCompletionForTask(task.id);
+      const phases = await getPhasesForTask(task.id);
+      const transitions = await getTransitionsForTask(task.id);
+      const currentPhase = phases.find(p => p.index === task.currentPhaseIndex);
+      
       return {
         ...task,
-        lastCompletion
+        phases,
+        phaseCount: phases.length,
+        currentPhase,
+        lastTransition: transitions.length > 0 ? transitions[0] : null,
+        hasTransitions: transitions.length > 0
       };
     })
   );
-  return tasksWithCompletions;
+  
+  return tasksWithInfo;
 }
 
 // Check if a task title already exists (case-insensitive)
